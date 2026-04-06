@@ -7,6 +7,9 @@ module.exports = defineConfig({
   server: {
     open: true,
     host: true,
+    proxy: {
+      '/api': 'http://localhost:5000',
+    },
   },
   build: {
     rollupOptions: {

@@ -1,22 +1,22 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const path = require('path');
-const helmet = require('helmet');
-const xss = require('xss-clean');
-const rateLimit = require('express-rate-limit');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const path = require("path");
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const rateLimit = require("express-rate-limit");
 const killPort = require("kill-port");
-const getPort = require("get-port").default;
-const { Server } = require('socket.io');
-const { connectDB } = require('./config/db');
-const app = require('./app')
+const getPortModule = import("get-port");
+const { Server } = require("socket.io");
+const { connectDB } = require("./config/db");
+const app = require("./app");
 const {
   errorHandler,
   notFound,
   handleUncaughtExceptions,
   handleUnhandledRejections,
-} = require('./middleware/errorMiddleware');
+} = require("./middleware/errorMiddleware");
 
 // Handle uncaught exceptions
 handleUncaughtExceptions();
@@ -31,67 +31,70 @@ app.use(xss()); // Prevent XSS attacks
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
-app.use('/api', limiter);
+app.use("/api", limiter);
 
 // Regular middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(morgan('dev'));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(morgan("dev"));
 
 // Serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-app.use('/uploads/profiles', express.static(path.join(__dirname, 'uploads', 'profiles')));
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
+app.use(
+  "/uploads/profiles",
+  express.static(path.join(__dirname, "uploads", "profiles")),
+);
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const propertyRoutes = require('./routes/properties');
-const userRoutes = require('./routes/users');
-const chatbotRoutes = require('./routes/chatbot');
-const reviewRoutes = require('./routes/reviews');
-const bookingRoutes = require('./routes/bookings');
-const uploadRoutes = require('./routes/upload');
-const notificationRoutes = require('./routes/notificationRoutes');
-const settingsRoutes = require('./routes/settingsRoutes');
-const chatRoutes = require('./routes/chatRoutes');
+const authRoutes = require("./routes/auth");
+const propertyRoutes = require("./routes/properties");
+const userRoutes = require("./routes/users");
+const chatbotRoutes = require("./routes/chatbot");
+const reviewRoutes = require("./routes/reviews");
+const bookingRoutes = require("./routes/bookings");
+const uploadRoutes = require("./routes/upload");
+const notificationRoutes = require("./routes/notificationRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 // Import services
-const notificationService = require('./services/notificationService');
-const securityService = require('./services/securityService');
+const notificationService = require("./services/notificationService");
+const securityService = require("./services/securityService");
 
 // Mount routes
-app.use('/api/auth', authRoutes);
-app.use('/api/properties', propertyRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/chatbot', chatbotRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/chats', chatRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/properties", propertyRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/chats", chatRoutes);
 
 // Base route
-app.get('/api/', (req, res) => {
+app.get("/api/", (req, res) => {
   res.json({
-    message: 'Welcome to House Rental API',
-    version: '1.0.0',
-    environment: process.env.NODE_ENV
+    message: "Welcome to House Rental API",
+    version: "1.0.0",
+    environment: process.env.NODE_ENV,
   });
 });
 
 // Error handling
 app.use(notFound);
 app.use(errorHandler);
-
-
 
 const PORT = parseInt(process.env.PORT, 10) || 5000;
 
@@ -116,6 +119,7 @@ process.on("uncaughtException", (err) => {
 
 const startServer = async () => {
   const safePort = await checkPort(PORT);
+  const { default: getPort } = await getPortModule;
   const final_port = await getPort({ port: safePort });
 
   const server = app.listen(final_port, () => {
@@ -123,7 +127,7 @@ const startServer = async () => {
   });
 
   // Initialize Socket.IO
-  const initializeSocket = require('./socket');
+  const initializeSocket = require("./socket");
   const io = initializeSocket(server);
 
   // Initialize WebSocket services
@@ -134,8 +138,6 @@ const startServer = async () => {
 
   // Handle unhandled promise rejections
   handleUnhandledRejections(server);
-
 };
 
 startServer();
-

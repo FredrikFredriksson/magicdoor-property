@@ -8,6 +8,7 @@ import SingleVilla from './components/Villa/SingleVilla';
 import TermsAndConditions from './components/TermsAndConditions/TermsAndConditions';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
+import NotesDemo from './components/NotesDemo/NotesDemo';
 import './App.css'
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
           <Route path='/termsandconditions' element={<TermsAndConditions/>}/>
           <Route path='/villas' element={<Villas/>}/>
           <Route path='/villa/:id' element={<SingleVilla/>}/>
+          <Route path='/notes-demo' element={<NotesDemo/>}/>
         </Routes>
         <Footer/>
       </Router>
