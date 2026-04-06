@@ -16,13 +16,13 @@ window.addEventListener("eip6963:announceProvider", ({ detail }) => {
 });
 window.dispatchEvent(new Event("eip6963:requestProvider"));
 
-// subscribe  — tells React how to listen for changes
-// getSnapshot — tells React how to read the current value
+// Lets React subscribe to wallet-store updates.
+// Returns an unsubscribe function for cleanup.
 function subscribeWallets(listener) {
   _listeners.add(listener);
   return () => _listeners.delete(listener);
 }
-
+// Lets React read the current wallet list from the external store.
 function getWalletsSnapshot() {
   return _wallets;
 }
